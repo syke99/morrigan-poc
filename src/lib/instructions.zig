@@ -11,7 +11,7 @@ pub const Text = struct {
     posX: i32,
     posY: i32,
     fontSize: i32,
-    textColor: libcolor.Color,
+    textColor: []const u8,
 
     fn draw(self: *Text) !void {
         rl.drawText(
@@ -19,7 +19,7 @@ pub const Text = struct {
             self.posX,
             self.posY,
             self.fontSize,
-            self.textColor.get()
+            libcolor.Color.initByName(self.textColor)
         );
     }
 };

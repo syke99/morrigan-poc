@@ -1,7 +1,7 @@
 const extism = @import("extism");
 
 const window = @import("window.zig");
-const key = @import("key.zig");
+const keyboard = @import("keyboard.zig");
 const mouse = @import("mouse.zig");
 
 pub fn functions() *[]extism.Function {
@@ -19,7 +19,7 @@ pub fn functions() *[]extism.Function {
         "isKeyUp",
         &[_]extism.c.ExtismValType{extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
-        key.host_isKeyUp,
+        keyboard.host_isKeyUp,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
     );
     defer h_isKeyUp.deinit();
@@ -28,7 +28,7 @@ pub fn functions() *[]extism.Function {
         "isKeyDown",
         &[_]extism.c.ExtismValType{extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
-        key.host_isKeyDown,
+        keyboard.host_isKeyDown,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
     );
     defer h_isKeyDown.deinit();
@@ -37,7 +37,7 @@ pub fn functions() *[]extism.Function {
         "isKeyPressed",
         &[_]extism.c.ExtismValType{extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
-        key.host_isKeyPressed,
+        keyboard.host_isKeyPressed,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
     );
     defer h_isKeyPressed.deinit();
@@ -46,7 +46,7 @@ pub fn functions() *[]extism.Function {
         "isKeyPressedRepeat",
         &[_]extism.c.ExtismValType{extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
-        key.host_isKeyPressedRepeat,
+        keyboard.host_isKeyPressedRepeat,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
     );
     defer h_isKeyPressedRepeat.deinit();
@@ -55,7 +55,7 @@ pub fn functions() *[]extism.Function {
         "isKeyPressedReleased",
         &[_]extism.c.ExtismValType{extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
-        key.host_isKeyPressedReleased,
+        keyboard.host_isKeyPressedReleased,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
     );
     defer h_isKeyPressedReleased.deinit();

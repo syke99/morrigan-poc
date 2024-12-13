@@ -2,19 +2,98 @@ const std = @import("std");
 const rl = @import("raylib");
 
 pub const ColorError = enum {
+    AllocationError,
     DoesntExist
 };
 
 pub const Color = struct {
     id: i32,
     color: clr,
+    rlColor: rl.Color,
 
-    pub fn initByName(self: *Color, name: []const u8) error{ColorError}!rl.Color {
-        _ = self;
+    // ========== RAYLIB FUNCTION WRAPPERS ==========
 
+    pub fn initByName(self: *Color, name: []const u8) error{ColorError}!i32 {
         const color = try getColorByName(name) catch ColorError.DoesntExist;
+        // create UUID and set self.id equal
 
-        return getRaylibColor(color);
+        self.color = color;
+
+        const rlColor = getRaylibColor(color);
+
+        self.rlColor = rlColor;
+
+        return 0;
+    }
+
+    pub fn initByValues(self: *Color, r: u8, g: u8, b: u8, a: u8) i32 {
+        const color = rl.Color.init(r, g, b, a);
+        // create UUID and set self.id equal
+
+        self.rlColor = color;
+
+        return 0;
+    }
+
+    /// Get a Color from HSV values, hue [0..360], saturation/value [0..1]
+    pub fn fromHSV(self: *Color, h: f32, s: f32, v: f32) error{ColorError}!i32 {
+        const color = rl.Color.fromHSV(h, s, v);
+        // create UUID and set self.id equal
+
+        self.rlColor = color;
+
+        return 0;
+    }
+
+    /// Get a Color from hexadecimal value
+    pub fn fromHex(self: *Color, hex: u32) error{ColorError}!Color {
+        const color = rl.Color.fromInt(hex);
+        // create UUID and set self.id equal
+
+        self.rlColor = color;
+
+        return 0;
+    }
+
+    /// Get hexadecimal value for a Color
+    pub fn toHex(self: *Color) i32 {
+        return rl.colorToInt(self);
+    }
+
+    /// Get color with alpha applied, alpha goes from 0.0 to 1.0
+    pub fn fade(self: *Color, a: f32) i32 {
+        const color = rl.fade(self, a);
+
+        self.rlColor = color;
+
+        return self.id;
+    }
+
+    /// Get color with brightness correction, brightness factor goes from -1.0 to 1.0
+    pub fn brightness(self: *Color, f: f32) i32 {
+        const color = rl.colorBrightness(self, f);
+
+        self.rlColor = color;
+
+        return self.id;
+    }
+
+    /// Get color with contrast correction, contrast values between -1.0 and 1.0
+    pub fn contrast(self: *Color, c: f32) i32 {
+        const color = rl.colorContrast(self, c);
+
+        self.rlColor = color;
+
+        return self.id;
+    }
+
+    /// Get color with alpha applied, alpha goes from 0.0 to 1.0
+    pub fn alpha(self: *Color, a: f32) i32 {
+        const color = rl.colorAlpha(self, a);
+
+        self.rlColor = color;
+
+        return self.id;
     }
 };
 
@@ -47,8 +126,8 @@ const clr = enum {
     ray_white,
 };
 
-fn getColorByName(name: []const u8) error{ColorError}!Color {
-    inline for (@typeInfo(Color).Enum.fields) |f| {
+fn getColorByName(name: []const u8) error{ColorError}!clr {
+    inline for (@typeInfo(clr).Enum.fields) |f| {
         if (std.mem.eql(u8, f.name, name)) {
             return @enumFromInt(f.value);
         }
@@ -56,7 +135,7 @@ fn getColorByName(name: []const u8) error{ColorError}!Color {
     return ColorError.DoesntExist;
 }
 
-fn getRaylibColor(c: Color) rl.Color {
+fn getRaylibColor(c: clr) rl.Color {
     const color = switch (c) {
         .light_gray => rl.Color.light_gray,
         .gray => rl.Color.gray,

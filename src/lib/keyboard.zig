@@ -10,9 +10,18 @@ pub const Keyboard = struct {
     id: i32,
     keys: [Key.KeyTable.len]Key,
 
+    // ========== RAYLIB FUNCTION WRAPPERS ==========
+
     pub fn init(self: *Keyboard) error{KeyboardError}!i32 {
         // create UUID and set self.id equal
-        _ = self;
+
+        // load the keys into the keyboard;
+        // in future, this can be extended to
+        // load certain keys based on certain
+        // system layouts
+        inline for (@typeInfo(Key).Enum.fields) |f| {
+            self[f.value] = @enumFromInt(f.value);
+        }
 
         // store UUID and self in global allocator map
 
