@@ -39,6 +39,18 @@ const Window = struct {
                 }
             }
 
+            // one thread here for handling main loop
+            //
+            // another thread here for monitoring key state
+            //
+            // another thread here for monitoring mouse state
+            //
+            // another thread here for monitoring audio state
+            //
+            // etc.
+            //
+            // etc.
+
             rl.endDrawing();
         }
 
@@ -94,7 +106,7 @@ fn unmarshalWindow(windowStr: [*:0]const u8) Window {
     return parsed.value;
 }
 
-pub fn makeWindow(windowStr: [*:0]const u8) !void {
+pub fn initWindow(windowStr: [*:0]const u8) !void {
     const window = unmarshalWindow(windowStr);
 
     try window.init();
