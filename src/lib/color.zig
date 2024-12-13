@@ -1,6 +1,8 @@
 const std = @import("std");
 const rl = @import("raylib");
 
+const liballocator = @import("allocator.zig");
+
 pub const ColorError = enum {
     AllocationError,
     DoesntExist
@@ -14,6 +16,11 @@ pub const Color = struct {
     // ========== RAYLIB FUNCTION WRAPPERS ==========
 
     pub fn initByName(self: *Color, name: []const u8) error{ColorError}!i32 {
+        // TODO: catch alloc error
+        const id = liballocator.allocate(Color);
+
+        self.id = id;
+
         const color = try getColorByName(name) catch ColorError.DoesntExist;
         // create UUID and set self.id equal
 
@@ -27,12 +34,21 @@ pub const Color = struct {
     }
 
     pub fn initByValues(self: *Color, r: u8, g: u8, b: u8, a: u8) i32 {
+        // TODO: catch alloc error
+        const id = liballocator.allocate(Color);
+
+        self.id = id;
+
         const color = rl.Color.init(r, g, b, a);
         // create UUID and set self.id equal
 
         self.rlColor = color;
 
         return 0;
+    }
+
+    pub fn deinit(self: *Color) void {
+        liballocator.free(self.id);
     }
 
     /// Get a Color from HSV values, hue [0..360], saturation/value [0..1]

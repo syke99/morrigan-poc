@@ -2,6 +2,8 @@ const std = @import("std");
 const rl = @import("raylib");
 const extism = @import("extism");
 
+const liballocator = @import("allocator.zig");
+
 pub const MouseError = enum {
   AllocationError
 };
@@ -12,22 +14,19 @@ pub const Mouse = struct {
     cursor: Cursor,
     
     pub fn init(self: *Mouse) error{MouseError}!i32 {
-        // create UUID and set self.id equal
-        _ = self;
-        
-        // store UUID and self in global allocator map
+        // TODO: catch alloc error
+        const id = liballocator.allocate(Mouse);
+
+        self.id = id;
 
         // if error allocating Mouse, return MouseError.AllocationError
         
-        // return UUID
-        return 0;
+        // return id
+        return id;
     }
     
     pub fn deinit(self: *Mouse) void {
-        // get UUID from self
-        _ = self;
-        
-        // pass to global allocator to destory
+        liballocator.free(self.id);
     }
 
     pub fn button(b: []const u8) error{ButtonError}!Button {

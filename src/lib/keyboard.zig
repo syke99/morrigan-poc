@@ -2,6 +2,8 @@ const std = @import("std");
 const rl = @import("raylib");
 const extism = @import("extism");
 
+const liballocator = @import("allocator.zig");
+
 pub const KeyboardError = enum {
     AllocationError
 };
@@ -13,7 +15,10 @@ pub const Keyboard = struct {
     // ========== RAYLIB FUNCTION WRAPPERS ==========
 
     pub fn init(self: *Keyboard) error{KeyboardError}!i32 {
-        // create UUID and set self.id equal
+        // TODO: catch alloc error
+        const id = liballocator.allocate(Keyboard);
+
+        self.id = id;
 
         // load the keys into the keyboard;
         // in future, this can be extended to
@@ -32,10 +37,7 @@ pub const Keyboard = struct {
     }
 
     pub fn deinit(self: *Keyboard) void {
-        // get UUID from self
-        _ = self;
-
-        // pass to global allocator to destory
+        liballocator.free(self.id);
     }
 
     pub fn key(b: []const u8) error{KeyError}!Key {
