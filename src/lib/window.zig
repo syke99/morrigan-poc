@@ -1,21 +1,18 @@
 const std = @import("std");
 const rl = @import("raylib");
+const extism = @import("extism");
 
 const libcolor = @import("color.zig");
+const libdraw = @import("draw.zig");
+const Instruction = @import("instructions.zig").Instruction;
 
 const Window = struct {
     width: i32,
     height: i32,
     targetFPS: ?i32,
-    title: [*:0]const u8,
-    backgroundColor: libcolor.Color,
+    title: []const u8,
+    backgroundColor: []const u8,
     initialInstructions: ?[]Instruction,
-
-    pub fn draw(instruction: Instruction) !void {
-        switch (instruction) {
-            .Text => |*t| t.draw()
-        }
-    }
 
     pub fn init(self: *Window) !void {
         rl.initWindow(
@@ -27,7 +24,9 @@ const Window = struct {
         while (!rl.windowShouldClose()) {
             rl.beginDrawing();
 
-            rl.clearBackground(self.backgroundColor.getColor());
+            const background_color = try libcolor.Color.initByName(self.backgroundColor) catch libcolor.ColorError.DoesntExist;
+
+            rl.clearBackground(background_color);
 
             if (self.targetFPS != null) {
                 rl.setTargetFPS(self.targetFPS.?);
@@ -35,7 +34,7 @@ const Window = struct {
 
             if (self.initialInstructions != null) {
                 inline for (self.initialInstructions.?) |value| {
-                    self.draw(value);
+                    libdraw.draw(value);
                 }
             }
 
@@ -57,36 +56,6 @@ const Window = struct {
         rl.closeWindow();
     }
 
-};
-
-pub const Instruction_T = enum {
-  Text,
-};
-
-pub const Instruction = union(Instruction_T) {
-    Text: Text,
-};
-
-const Text = struct {
-    text: [*:0]const u8,
-    posX: i32,
-    posY: i32,
-    fontSize: i32,
-    textColor: libcolor.Color,
-
-    fn getColor(self: *Text) rl.Color {
-        return self.getColor();
-    }
-
-    fn draw(self: *Text) !void {
-        rl.drawText(
-            self.text,
-            self.posX,
-            self.posY,
-            self.fontSize,
-            self.getColor()
-        );
-    }
 };
 
 fn unmarshalWindow(windowStr: [*:0]const u8) Window {
@@ -111,3 +80,20 @@ pub fn initWindow(windowStr: [*:0]const u8) !void {
 
     try window.init();
 }
+
+// ========= INJECTED HOST FUNCTION(S) =========
+
+pub export fn host_initWindow(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
+    _ = outputs;
+    _ = n_outputs;
+    _ = user_data;
+
+    var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+
+    // retrieve the key from the plugin
+    var input_slice = inputs[0..n_inputs];
+    const windowStr = curr_plugin.inputBytes(&input_slice[0]);
+
+    try initWindow(windowStr);
+}
+

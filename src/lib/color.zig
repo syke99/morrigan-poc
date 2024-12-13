@@ -1,6 +1,24 @@
+const std = @import("std");
 const rl = @import("raylib");
 
-pub const Color = enum {
+pub const ColorError = enum {
+    DoesntExist
+};
+
+pub const Color = struct {
+    id: i32,
+    color: clr,
+
+    pub fn initByName(self: *Color, name: []const u8) error{ColorError}!rl.Color {
+        _ = self;
+
+        const color = try getColorByName(name) catch ColorError.DoesntExist;
+
+        return getRaylibColor(color);
+    }
+};
+
+const clr = enum {
     light_gray,
     gray,
     dark_gray,
@@ -27,38 +45,47 @@ pub const Color = enum {
     blank,
     magenta,
     ray_white,
-
-    fn getColor(self: *Color) rl.Color {
-        const color = switch (self) {
-            .light_gray => rl.Color.light_gray,
-            .gray => rl.Color.gray,
-            .dark_gray => rl.Color.dark_gray,
-            .yellow => rl.Color.yellow,
-            .gold => rl.Color.gold,
-            .orange => rl.Color.orange,
-            .pink => rl.Color.pink,
-            .red => rl.Color.red,
-            .maroon => rl.Color.maroon,
-            .green => rl.Color.green,
-            .lime => rl.Color.lime,
-            .dark_green => rl.Color.dark_green,
-            .sky_blue => rl.Color.sky_blue,
-            .blue => rl.Color.blue,
-            .dark_blue => rl.Color.dark_blue,
-            .purple => rl.Color.purple,
-            .violet => rl.Color.violet,
-            .dark_purple => rl.Color.dark_purple,
-            .beige => rl.Color.beige,
-            .brown => rl.Color.brown,
-            .dark_brown => rl.Color.dark_brown,
-            .white => rl.Color.white,
-            .black => rl.Color.black,
-            .magenta => rl.Color.magenta,
-            .ray_white => rl.Color.ray_white,
-
-            else => rl.Color.blank
-        };
-
-        return color;
-    }
 };
+
+fn getColorByName(name: []const u8) error{ColorError}!Color {
+    inline for (@typeInfo(Color).Enum.fields) |f| {
+        if (std.mem.eql(u8, f.name, name)) {
+            return @enumFromInt(f.value);
+        }
+    }
+    return ColorError.DoesntExist;
+}
+
+fn getRaylibColor(c: Color) rl.Color {
+    const color = switch (c) {
+        .light_gray => rl.Color.light_gray,
+        .gray => rl.Color.gray,
+        .dark_gray => rl.Color.dark_gray,
+        .yellow => rl.Color.yellow,
+        .gold => rl.Color.gold,
+        .orange => rl.Color.orange,
+        .pink => rl.Color.pink,
+        .red => rl.Color.red,
+        .maroon => rl.Color.maroon,
+        .green => rl.Color.green,
+        .lime => rl.Color.lime,
+        .dark_green => rl.Color.dark_green,
+        .sky_blue => rl.Color.sky_blue,
+        .blue => rl.Color.blue,
+        .dark_blue => rl.Color.dark_blue,
+        .purple => rl.Color.purple,
+        .violet => rl.Color.violet,
+        .dark_purple => rl.Color.dark_purple,
+        .beige => rl.Color.beige,
+        .brown => rl.Color.brown,
+        .dark_brown => rl.Color.dark_brown,
+        .white => rl.Color.white,
+        .black => rl.Color.black,
+        .magenta => rl.Color.magenta,
+        .ray_white => rl.Color.ray_white,
+
+        else => rl.Color.blank
+    };
+
+    return color;
+}
