@@ -14,7 +14,25 @@ pub fn functions() *[]extism.Function {
         @constCast(@as(*const anyopaque, @ptrCast("user data"))),
     );
     defer h_initWindow.deinit();
-    // ======= KEYS =======
+    // ======= KEYBOARD =======
+    var h_keyboard = extism.Function.init(
+        "keyboard",
+        &[_]extism.c.ExtismValType{},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        keyboard.host_keyboard,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+    defer h_keyboard.deinit();
+
+    var h_keyboardFree = extism.Function.init(
+        "keyboardFree",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{},
+        keyboard.host_freeKeyboard,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+    defer h_keyboardFree.deinit();
+    // ======= KEYBOARD =======
     var h_isKeyUp = extism.Function.init(
         "isKeyUp",
         &[_]extism.c.ExtismValType{extism.PTR},
@@ -59,6 +77,23 @@ pub fn functions() *[]extism.Function {
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
     );
     defer h_isKeyPressedReleased.deinit();
+    // ======= MOUSE =======
+    var h_mouse = extism.Function.init(
+        "mouse",
+        &[_]extism.c.ExtismValType{},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        mouse.host_mouse,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+    defer h_mouse.deinit();
+    var h_mouseFree = extism.Function.init(
+        "mouseFree",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{},
+        mouse.host_freeMouse,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+    defer h_mouseFree.deinit();
     // ======= MOUSE BUTTONS =======
     var h_isMouseButtonUp = extism.Function.init(
         "isMouseButtonUp",
@@ -135,12 +170,18 @@ pub fn functions() *[]extism.Function {
     return &[_]extism.Function{
         // ======= WINDOW =======
         h_initWindow,
-        // ======= KEYS =======
+        // ======= KEYBOARD =======
+        h_keyboard,
+        h_keyboardFree,
+        // ======= KEYBOARD =======
         h_isKeyUp,
         h_isKeyDown,
         h_isKeyPressed,
         h_isKeyPressedRepeat,
         h_isKeyPressedReleased,
+        // ======= MOUSE =======
+        h_mouse,
+        h_mouseFree,
         // ======= MOUSE BUTTONS =======
         h_isMouseButtonUp,
         h_isMouseButtonDown,

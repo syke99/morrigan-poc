@@ -184,3 +184,6 @@ fn getRaylibColor(c: clr) rl.Color {
 
     return color;
 }
+
+// TODO:
+// ========= INJECTED HOST FUNCTION(S) =========

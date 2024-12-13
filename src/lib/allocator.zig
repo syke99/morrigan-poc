@@ -4,7 +4,7 @@ const Mouse = @import("mouse.zig").Mouse;
 const Keyboard = @import("keyboard.zig").Keyboard;
 const Color = @import("color.zig").Color;
 
-var alc: *GlobalAllocator = null;
+var alc: *GlobalAllocator = undefined;
 
 pub const GlobalAllocator = struct {
     allocator: std.mem.Allocator,

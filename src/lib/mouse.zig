@@ -139,7 +139,37 @@ fn getRaylibCursor(mc: Cursor) rl.Cursor {
 
 // ========= INJECTED HOST FUNCTION(S) =========
 
-// TODO: init/deinit functions for Mouse once global allocator is built
+pub export fn host_mouse(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
+    _ = inputs;
+    _ = n_inputs;
+    _ = user_data;
+    _ = outputs;
+    _ = n_outputs;
+
+    // TODO: catch error
+    // initialize id to return
+    // const id = try Mouse.init();
+
+    _ = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+}
+
+pub export fn host_freeMouse(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
+    _ = outputs;
+    _ = n_outputs;
+    _ = user_data;
+
+    var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+
+    var input_slice = inputs[0..n_inputs];
+
+    const id_str = curr_plugin.inputBytes(&input_slice[0]);
+
+    const id = try std.fmt.parseInt(i32, id_str, 10);
+
+    var mouse: *Mouse = @ptrFromInt(id);
+
+    mouse.deinit();
+}
 
 pub export fn host_isButtonUp(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
     _ = outputs;
