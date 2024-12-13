@@ -117,6 +117,29 @@ pub const Cursor = enum {
     pub fn set(self: *Cursor) void {
         rl.setCursor(getRaylibCursor(self));
     }
+
+    const CursorTable = [@typeInfo(Cursor).Enum.fields.len][]const u8{
+        "default",
+        "arrow",
+        "ibeam",
+        "crosshair",
+        "pointing_hand",
+        "resize_ew",
+        "resize_ns",
+        "resize_nwse",
+        "resize_nesw",
+        "resize_all",
+        "not_allowed",
+    };
+
+    pub fn get(name: []const u8) *Cursor {
+        inline for (@typeInfo(Cursor).Enum.fields) |f| {
+            if (std.mem.eql([]const u8, f.name, name)) {
+                return @enumFromInt(f.value);
+            }
+        }
+        return Cursor.default;
+    }
 };
 
 fn getRaylibCursor(mc: Cursor) rl.Cursor {
@@ -143,14 +166,19 @@ pub export fn host_mouse(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]con
     _ = inputs;
     _ = n_inputs;
     _ = user_data;
-    _ = outputs;
-    _ = n_outputs;
 
     // TODO: catch error
-    // initialize id to return
-    // const id = try Mouse.init();
+    const id = try Mouse.init();
 
-    _ = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+    const curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+
+    var output_slice = outputs[0..n_outputs];
+
+    var id_buf: [@sizeOf(i32)]u8 = undefined;
+
+    std.fmt.bufPrint(&id_buf, "{d}", id);
+
+    curr_plugin.returnBytes(&output_slice[0], id_buf);
 }
 
 pub export fn host_freeMouse(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
@@ -172,8 +200,6 @@ pub export fn host_freeMouse(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c
 }
 
 pub export fn host_isButtonUp(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
-    _ = outputs;
-    _ = n_outputs;
     _ = user_data;
 
     var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
@@ -187,15 +213,23 @@ pub export fn host_isButtonUp(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*
     // handle setting/returning error on undefined host_key here
 
     // result
-    _ = host_mouse_button.?.isUp();
+    const result = host_mouse_button.?.isUp();
+
+    var output_slice = outputs[0..n_outputs];
+
+    var result_buff: []const u8 = undefined;
+
+    if (result) {
+        result_buff = "true";
+    } else {
+        result_buff = "false";
+    }
 
     // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    curr_plugin.returnBytes(&output_slice[0], result_buff);
 }
 
 pub export fn host_isButtonDown(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
-    _ = outputs;
-    _ = n_outputs;
     _ = user_data;
 
     var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
@@ -209,15 +243,23 @@ pub export fn host_isButtonDown(caller: ?*extism.c.ExtismCurrentPlugin, inputs: 
     // handle setting/returning error on undefined host_key here
 
     // result
-    _ = host_mouse_button.?.isDown();
+    const result = host_mouse_button.?.isDown();
+
+    var output_slice = outputs[0..n_outputs];
+
+    var result_buff: []const u8 = undefined;
+
+    if (result) {
+        result_buff = "true";
+    } else {
+        result_buff = "false";
+    }
 
     // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    curr_plugin.returnBytes(&output_slice[0], result_buff);
 }
 
 pub export fn host_isButtonPressed(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
-    _ = outputs;
-    _ = n_outputs;
     _ = user_data;
 
     var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
@@ -231,15 +273,23 @@ pub export fn host_isButtonPressed(caller: ?*extism.c.ExtismCurrentPlugin, input
     // handle setting/returning error on undefined host_key here
 
     // result
-    _ = host_mouse_button.?.isPressed();
+    const result = host_mouse_button.?.isPressed();
+
+    var output_slice = outputs[0..n_outputs];
+
+    var result_buff: []const u8 = undefined;
+
+    if (result) {
+        result_buff = "true";
+    } else {
+        result_buff = "false";
+    }
 
     // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    curr_plugin.returnBytes(&output_slice[0], result_buff);
 }
 
 pub export fn host_isButtonReleased(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
-    _ = outputs;
-    _ = n_outputs;
     _ = user_data;
 
     var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
@@ -253,10 +303,20 @@ pub export fn host_isButtonReleased(caller: ?*extism.c.ExtismCurrentPlugin, inpu
     // handle setting/returning error on undefined host_key here
 
     // result
-    _ = host_mouse_button.?.isReleased();
+    const result = host_mouse_button.?.isReleased();
+
+    var output_slice = outputs[0..n_outputs];
+
+    var result_buff: []const u8 = undefined;
+
+    if (result) {
+        result_buff = "true";
+    } else {
+        result_buff = "false";
+    }
 
     // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    curr_plugin.returnBytes(&output_slice[0], result_buff);
 }
 
 pub export fn host_setCursor(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
@@ -274,62 +334,70 @@ pub export fn host_setCursor(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c
 
     // handle setting/returning error on undefined host_key here
 
-    // result
-    _ = host_mouse_cursor.?.set();
-
-    // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    host_mouse_cursor.?.get(mouse_cursor_str).set();
 }
 
 pub export fn host_getMouseX(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
     _ = inputs;
     _ = n_inputs;
-    _ = outputs;
-    _ = n_outputs;
     _ = user_data;
 
     // curr_plugin
-    _ = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+    var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
 
     // result
-    _ = rl.getMouseX();
+    const mouse_x = rl.getMouseX();
+
+    var output_slice = outputs[0..n_outputs];
+
+    var mouse_x_buf: [@sizeOf(i32)]u8 = undefined;
+
+    std.fmt.bufPrint(&mouse_x_buf, "{d}", mouse_x);
 
     // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    curr_plugin.returnBytes(&output_slice[0], mouse_x_buf);
 }
 
 pub export fn host_getMouseY(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
     _ = inputs;
     _ = n_inputs;
-    _ = outputs;
-    _ = n_outputs;
     _ = user_data;
 
     // curr_plugin
-    _ = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+    var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
 
     // result
-    _ = rl.getMouseY();
+    const mouse_y = rl.getMouseY();
+
+    var output_slice = outputs[0..n_outputs];
+
+    var mouse_y_buf: [@sizeOf(i32)]u8 = undefined;
+
+    std.fmt.bufPrint(&mouse_y_buf, "{d}", mouse_y);
 
     // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    curr_plugin.returnBytes(&output_slice[0], mouse_y_buf);
 }
 
 pub export fn host_getMouseWheelMove(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
     _ = inputs;
     _ = n_inputs;
-    _ = outputs;
-    _ = n_outputs;
     _ = user_data;
 
     // curr_plugin
-    _ = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+    var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
 
     // result
-    _ = rl.getMouseWheelMove();
+    const mouse_wheel_move = rl.getMouseWheelMove();
+
+    var output_slice = outputs[0..n_outputs];
+
+    var mouse_wheel_move_buf: [@sizeOf(i32)]u8 = undefined;
+
+    std.fmt.bufPrint(&mouse_wheel_move_buf, "{d}", mouse_wheel_move);
 
     // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    curr_plugin.returnBytes(&output_slice[0], mouse_wheel_move_buf);
 }
 
 // Vector2 values will need to be stored in

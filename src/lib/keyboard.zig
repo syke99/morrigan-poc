@@ -312,14 +312,19 @@ pub export fn host_keyboard(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]
     _ = inputs;
     _ = n_inputs;
     _ = user_data;
-    _ = outputs;
-    _ = n_outputs;
 
     // TODO: catch error
-    // initialize id to return
-    // const id = try Keyboard.init();
+    const id = try Keyboard.init();
 
-    _ = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+    var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+
+    var output_slice = outputs[0..n_outputs];
+
+    var id_buf: [@sizeOf(i32)]u8 = undefined;
+
+    std.fmt.bufPrint(&id_buf, "{d}", id);
+
+    curr_plugin.returnBytes(&output_slice[0], id_buf);
 }
 
 pub export fn host_freeKeyboard(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
@@ -341,8 +346,6 @@ pub export fn host_freeKeyboard(caller: ?*extism.c.ExtismCurrentPlugin, inputs: 
 }
 
 pub export fn host_isKeyUp(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
-    _ = outputs;
-    _ = n_outputs;
     _ = user_data;
 
     var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
@@ -356,15 +359,23 @@ pub export fn host_isKeyUp(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]c
     // handle setting/returning error on undefined host_key here
     
     // result
-    _ = host_key.?.?.isUp();
+    const result = host_key.?.isUp();
+
+    var output_slice = outputs[0..n_outputs];
+
+    var result_buff: []const u8 = undefined;
+
+    if (result) {
+        result_buff = "true";
+    } else {
+        result_buff = "false";
+    }
 
     // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    curr_plugin.returnBytes(&output_slice[0], result_buff);
 }
 
 pub export fn host_isKeyDown(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
-    _ = outputs;
-    _ = n_outputs;
     _ = user_data;
 
     var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
@@ -376,15 +387,23 @@ pub export fn host_isKeyDown(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c
     const host_key = std.meta.stringToEnum(Key, key_str);
 
     // result
-    _ = host_key.?.isDown();
+    const result = host_key.?.isDown();
+
+    var output_slice = outputs[0..n_outputs];
+
+    var result_buff: []const u8 = undefined;
+
+    if (result) {
+        result_buff = "true";
+    } else {
+        result_buff = "false";
+    }
 
     // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    curr_plugin.returnBytes(&output_slice[0], result_buff);
 }
 
 pub export fn host_isKeyPressed(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
-    _ = outputs;
-    _ = n_outputs;
     _ = user_data;
 
     var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
@@ -396,15 +415,23 @@ pub export fn host_isKeyPressed(caller: ?*extism.c.ExtismCurrentPlugin, inputs: 
     const host_key = std.meta.stringToEnum(Key, key_str);
 
     // result
-    _ = host_key.?.isPressed();
+    const result = host_key.?.isPressed();
+
+    var output_slice = outputs[0..n_outputs];
+
+    var result_buff: []const u8 = undefined;
+
+    if (result) {
+        result_buff = "true";
+    } else {
+        result_buff = "false";
+    }
 
     // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    curr_plugin.returnBytes(&output_slice[0], result_buff);
 }
 
 pub export fn host_isKeyPressedRepeat(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
-    _ = outputs;
-    _ = n_outputs;
     _ = user_data;
 
     var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
@@ -416,15 +443,23 @@ pub export fn host_isKeyPressedRepeat(caller: ?*extism.c.ExtismCurrentPlugin, in
     const host_key = std.meta.stringToEnum(Key, key_str);
 
     // result
-    _ = host_key.?.isPressedRepeat();
+    const result = host_key.?.isPressedRepeat();
+
+    var output_slice = outputs[0..n_outputs];
+
+    var result_buff: []const u8 = undefined;
+
+    if (result) {
+        result_buff = "true";
+    } else {
+        result_buff = "false";
+    }
 
     // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    curr_plugin.returnBytes(&output_slice[0], result_buff);
 }
 
 pub export fn host_isKeyPressedReleased(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
-    _ = outputs;
-    _ = n_outputs;
     _ = user_data;
 
     var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
@@ -436,9 +471,19 @@ pub export fn host_isKeyPressedReleased(caller: ?*extism.c.ExtismCurrentPlugin, 
     const host_key = std.meta.stringToEnum(Key, key_str);
 
     // result
-    _ = host_key.?.isPressedReleased();
+    const result = host_key.?.isPressedReleased();
+
+    var output_slice = outputs[0..n_outputs];
+
+    var result_buff: []const u8 = undefined;
+
+    if (result) {
+        result_buff = "true";
+    } else {
+        result_buff = "false";
+    }
 
     // return result here
-    // curr_plugin.returnBytes(val: *c.ExtismVal, data: []const u8)
+    curr_plugin.returnBytes(&output_slice[0], result_buff);
 }
 

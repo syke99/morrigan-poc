@@ -142,7 +142,7 @@ pub fn functions() *[]extism.Function {
     // ======= MOUSE POSITION =======
     var h_getMouseX = extism.Function.init(
         "getMouseX",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{},
         &[_]extism.c.ExtismValType{extism.PTR},
         mouse.host_getMouseX,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
@@ -151,7 +151,7 @@ pub fn functions() *[]extism.Function {
 
     var h_getMouseY = extism.Function.init(
         "getMouseY",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{},
         &[_]extism.c.ExtismValType{extism.PTR},
         mouse.host_getMouseY,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
@@ -160,7 +160,7 @@ pub fn functions() *[]extism.Function {
     // ======= MOUSE POSITION =======
     var h_getMouseWheelMove = extism.Function.init(
         "getMouseWheelMove",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{},
         &[_]extism.c.ExtismValType{extism.PTR},
         mouse.host_getMouseWheelMove,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))

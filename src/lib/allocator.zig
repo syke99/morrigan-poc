@@ -33,6 +33,8 @@ pub const GlobalAllocator = struct {
     fn free(self: *GlobalAllocator, id: i32) void {
         const ptr = try self.hashMap.get(id);
 
+        self.hashMap.remove(id);
+
         self.allocator.destroy(ptr);
     }
 };
