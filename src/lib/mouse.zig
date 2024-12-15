@@ -14,10 +14,14 @@ pub const Mouse = struct {
     cursor: Cursor,
     
     pub fn init(self: *Mouse) error{MouseError}!i32 {
+        _ = self;
+
         // TODO: catch alloc error
         const id = liballocator.allocate(Mouse);
 
-        self.id = id;
+        const self_ptr = liballocator.retrieve(Mouse, id);
+
+        self_ptr.id = id;
 
         // if error allocating Mouse, return MouseError.AllocationError
         
@@ -30,10 +34,8 @@ pub const Mouse = struct {
     }
 
     pub fn button(b: []const u8) error{ButtonError}!Button {
-        inline for (@typeInfo(Button).Enum.fields) |f| {
-            if (std.mem.eql(u8, f.name, b)) {
-                return @enumFromInt(f.value);
-            }
+        if (std.meta.stringToEnum(Button, b)) |btn| {
+            return btn;
         }
         return ButtonError.DoesntExist;
     }
@@ -176,7 +178,7 @@ pub export fn host_mouse(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]con
 
     var id_buf: [@sizeOf(i32)]u8 = undefined;
 
-    std.fmt.bufPrint(&id_buf, "{d}", id);
+    std.fmt.formatIntBuf(&id_buf, id, 10, std.fmt.Case.lower, .{});
 
     curr_plugin.returnBytes(&output_slice[0], id_buf);
 }
@@ -411,3 +413,103 @@ pub export fn host_getMouseWheelMove(caller: ?*extism.c.ExtismCurrentPlugin, inp
 // rl.getMouseDelta()
 //
 // rl.getMousePosition()
+
+pub fn exports() []extism.Function {
+    // ======= MOUSE =======
+    const h_mouse = extism.Function.init(
+        "mouse",
+        &[_]extism.c.ExtismValType{},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_mouse,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+    const h_mouseFree = extism.Function.init(
+        "mouseFree",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{},
+        &host_freeMouse,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+    // ======= MOUSE BUTTONS =======
+    const h_isMouseButtonUp = extism.Function.init(
+        "isMouseButtonUp",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_isButtonUp,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    const h_isMouseButtonDown = extism.Function.init(
+        "isMouseButtonDown",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_isButtonDown,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    const h_isMouseButtonPressed = extism.Function.init(
+        "isMouseButtonPressed",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_isButtonPressed,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    const h_isMouseButtonReleased = extism.Function.init(
+        "isMouseButtonReleased",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_isButtonReleased,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+    // ======= MOUSE CURSOR =======
+    const h_setMouseCursor = extism.Function.init(
+        "setMouseCursor",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_setCursor,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+    // ======= MOUSE POSITION =======
+    const h_getMouseX = extism.Function.init(
+        "getMouseX",
+        &[_]extism.c.ExtismValType{},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_getMouseX,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    const h_getMouseY = extism.Function.init(
+        "getMouseY",
+        &[_]extism.c.ExtismValType{},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_getMouseY,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+    // ======= MOUSE WHEEL MOVE =======
+    const h_getMouseWheelMove = extism.Function.init(
+        "getMouseWheelMove",
+        &[_]extism.c.ExtismValType{},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_getMouseWheelMove,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    return [_]extism.Function{
+        // ======= MOUSE =======
+        h_mouse,
+        h_mouseFree,
+        // ======= MOUSE BUTTONS =======
+        h_isMouseButtonUp,
+        h_isMouseButtonDown,
+        h_isMouseButtonPressed,
+        h_isMouseButtonReleased,
+        // ======= MOUSE CURSOR =======
+        h_setMouseCursor,
+        // ======= MOUSE POSITION =======
+        h_getMouseX,
+        h_getMouseY,
+        // ======= MOUSE WHEEL MOVE =======
+        h_getMouseWheelMove
+    };
+}

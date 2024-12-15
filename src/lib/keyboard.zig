@@ -15,36 +15,34 @@ pub const Keyboard = struct {
     // ========== RAYLIB FUNCTION WRAPPERS ==========
 
     pub fn init(self: *Keyboard) error{KeyboardError}!i32 {
+        _ = self;
+
         // TODO: catch alloc error
         const id = liballocator.allocate(Keyboard);
 
-        self.id = id;
+        const self_ptr = liballocator.retrieve(Keyboard, id);
+
+        self_ptr.id = id;
 
         // load the keys into the keyboard;
         // in future, this can be extended to
         // load certain keys based on certain
         // system layouts
         inline for (@typeInfo(Key).Enum.fields) |f| {
-            self[f.value] = @enumFromInt(f.value);
+            self_ptr.keys[f.value] = @enumFromInt(f.value);
         }
 
-        // store UUID and self in global allocator map
-
-        // if error allocating Keyboard, return MouseError.AllocationError
-
         // return UUID
-        return 0;
+        return id;
     }
 
     pub fn deinit(self: *Keyboard) void {
         liballocator.free(self.id);
     }
 
-    pub fn key(b: []const u8) error{KeyError}!Key {
-        inline for (@typeInfo(Key).Enum.fields) |f| {
-            if (std.mem.eql(u8, f.name, b)) {
-                return @enumFromInt(f.value);
-            }
+    pub fn key(k: []const u8) error{KeyError}!Key {
+        if (std.meta.stringToEnum(Key, k)) |keyboard_key| {
+            return keyboard_key;
         }
         return KeyError.DoesntExist;
     }
@@ -322,7 +320,7 @@ pub export fn host_keyboard(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]
 
     var id_buf: [@sizeOf(i32)]u8 = undefined;
 
-    std.fmt.bufPrint(&id_buf, "{d}", id);
+    std.fmt.formatIntBuf(&id_buf, id, 10, std.fmt.Case.lower, .{});
 
     curr_plugin.returnBytes(&output_slice[0], id_buf);
 }
@@ -487,3 +485,74 @@ pub export fn host_isKeyPressedReleased(caller: ?*extism.c.ExtismCurrentPlugin, 
     curr_plugin.returnBytes(&output_slice[0], result_buff);
 }
 
+pub fn exports() []extism.Function {
+
+    // ======= KEYBOARD =======
+    const h_keyboard = extism.Function.init(
+        "keyboard",
+        &[_]extism.c.ExtismValType{},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_keyboard,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    const h_keyboardFree = extism.Function.init(
+        "keyboardFree",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{},
+        &host_freeKeyboard,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+    // ======= KEYBOARD =======
+    const h_isKeyUp = extism.Function.init(
+        "isKeyUp",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_isKeyUp,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    const h_isKeyDown = extism.Function.init(
+        "isKeyDown",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_isKeyDown,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    const h_isKeyPressed = extism.Function.init(
+        "isKeyPressed",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_isKeyPressed,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    const h_isKeyPressedRepeat = extism.Function.init(
+        "isKeyPressedRepeat",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_isKeyPressedRepeat,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    const h_isKeyPressedReleased = extism.Function.init(
+        "isKeyPressedReleased",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_isKeyPressedReleased,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    return [_]extism.Function{
+        // ======= KEYBOARD =======
+        h_keyboard,
+        h_keyboardFree,
+        // ======= KEYS =======
+        h_isKeyUp,
+        h_isKeyDown,
+        h_isKeyPressed,
+        h_isKeyPressedRepeat,
+        h_isKeyPressedReleased,
+    };
+}

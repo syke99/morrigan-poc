@@ -1,11 +1,19 @@
 const std = @import("std");
 const rl = @import("raylib");
+const extism = @import("extism");
 
 const liballocator = @import("allocator.zig");
 
 pub const ColorError = enum {
     AllocationError,
     DoesntExist
+};
+
+const InitValueTypes = union {
+    name: []const u8,
+    rgba: []const u8,
+    hsv: []f32,
+    hex: u32,
 };
 
 pub const Color = struct {
@@ -15,36 +23,69 @@ pub const Color = struct {
 
     // ========== RAYLIB FUNCTION WRAPPERS ==========
 
-    pub fn initByName(self: *Color, name: []const u8) error{ColorError}!i32 {
+    pub fn init(self: *Color, inputs: InitValueTypes) error{ColorError}!*Color {
+        switch (inputs) {
+            .name => |*n| {
+                // TODO: catch alloc error
+                self = self.initByName(n.*);
+            },
+            .rgba => |*r| {
+                const rgba_slice = r.*;
+
+                // TODO: catch alloc error
+                self = self.initByValues(rgba_slice[0], rgba_slice[1], rgba_slice[2], rgba_slice[3]);
+            },
+            .hsv => |*r| {
+                const hsv_slice = r.*;
+
+                // TODO: catch alloc error
+                self = self.fromHSV(hsv_slice[0], hsv_slice[1], hsv_slice[2]);
+            },
+            .hex => |*h| {
+                // TODO: catch alloc error
+                self = self.fromHex(h.*);
+            }
+        }
+    }
+
+    fn initByName(self: *Color, name: []const u8) error{ColorError}!*Color {
+        _ = self;
+
         // TODO: catch alloc error
         const id = liballocator.allocate(Color);
 
-        self.id = id;
+        const self_ptr = liballocator.retrieve(Color, id);
+
+        self_ptr.id = id;
 
         const color = try getColorByName(name) catch ColorError.DoesntExist;
         // create UUID and set self.id equal
 
-        self.color = color;
+        self_ptr.color = color;
 
         const rlColor = getRaylibColor(color);
 
-        self.rlColor = rlColor;
+        self_ptr.rlColor = rlColor;
 
-        return 0;
+        return self_ptr;
     }
 
-    pub fn initByValues(self: *Color, r: u8, g: u8, b: u8, a: u8) i32 {
+    fn initByValues(self: *Color, r: u8, g: u8, b: u8, a: u8) *Color {
+        _ = self;
+
         // TODO: catch alloc error
         const id = liballocator.allocate(Color);
 
-        self.id = id;
+        const self_ptr = liballocator.retrieve(Color, id);
+
+        self_ptr.id = id;
 
         const color = rl.Color.init(r, g, b, a);
         // create UUID and set self.id equal
 
-        self.rlColor = color;
+        self_ptr.rlColor = color;
 
-        return 0;
+        return self_ptr;
     }
 
     pub fn deinit(self: *Color) void {
@@ -52,19 +93,30 @@ pub const Color = struct {
     }
 
     /// Get a Color from HSV values, hue [0..360], saturation/value [0..1]
-    pub fn fromHSV(self: *Color, h: f32, s: f32, v: f32) error{ColorError}!i32 {
+    fn fromHSV(self: *Color, h: f32, s: f32, v: f32) error{ColorError}!*Color {
+        _ = self;
+
+        // TODO: catch alloc error
+        const id = liballocator.allocate(Color);
+
+        const self_ptr = liballocator.retrieve(Color, id);
+
+        self_ptr.id = id;
+
         const color = rl.Color.fromHSV(h, s, v);
-        // create UUID and set self.id equal
 
-        self.rlColor = color;
+        self_ptr.rlColor = color;
 
-        return 0;
+        return self_ptr;
     }
 
     /// Get a Color from hexadecimal value
-    pub fn fromHex(self: *Color, hex: u32) error{ColorError}!Color {
+    fn fromHex(self: *Color, hex: u32) error{ColorError}!i32 {
+        const id = liballocator.allocate(Color);
+
+        self.id = id;
+
         const color = rl.Color.fromInt(hex);
-        // create UUID and set self.id equal
 
         self.rlColor = color;
 
@@ -83,6 +135,22 @@ pub const Color = struct {
         self.rlColor = color;
 
         return self.id;
+    }
+
+    /// Tints self with t, allocates a new Color
+    /// and returns it
+    pub fn tint(self: *Color, t: i32) i32 {
+        const tint_Color = liballocator.retrieve(Color, t);
+
+        const tinted_Color = rl.colorTint(self, tint_Color);
+
+        const id = liballocator.allocate(tinted_Color);
+
+        const tinted_Color_ptr = liballocator.retrieve(Color, id);
+
+        tinted_Color_ptr = &tinted_Color;
+
+        return id;
     }
 
     /// Get color with brightness correction, brightness factor goes from -1.0 to 1.0
@@ -143,10 +211,10 @@ const clr = enum {
 };
 
 fn getColorByName(name: []const u8) error{ColorError}!clr {
-    inline for (@typeInfo(clr).Enum.fields) |f| {
-        if (std.mem.eql(u8, f.name, name)) {
-            return @enumFromInt(f.value);
-        }
+    const color = std.meta.stringToEnum(clr, name);
+
+    if (color) |c| {
+        return c;
     }
     return ColorError.DoesntExist;
 }
@@ -185,5 +253,159 @@ fn getRaylibColor(c: clr) rl.Color {
     return color;
 }
 
-// TODO:
+// TODO: finish injecting host functions and registering them
 // ========= INJECTED HOST FUNCTION(S) =========
+
+pub export fn host_initColorWithName(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
+    _ = user_data;
+
+    var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+
+    var input_slice = inputs[0..n_inputs];
+
+    const color_str = curr_plugin.inputBytes(&input_slice[0]);
+
+    const host_clr = Color.init([1]InitValueTypes{color_str}) catch ColorError.DoesntExist;
+
+    var output_slice = outputs[0..n_outputs];
+
+    var id_buf: [@sizeOf(i32)]u8 = undefined;
+
+    std.fmt.formatIntBuf(&id_buf, host_clr.id, 10, std.fmt.Case.lower, .{});
+
+    curr_plugin.returnBytes(&output_slice[0], id_buf);
+}
+
+pub export fn host_initColorWithValues(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
+    _ = user_data;
+
+    var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+
+    var input_slice = inputs[0..n_inputs];
+
+    const color_r_buf = curr_plugin.inputBytes(&input_slice[0]);
+    const color_g_buf = curr_plugin.inputBytes(&input_slice[1]);
+    const color_b_buf = curr_plugin.inputBytes(&input_slice[2]);
+    const color_a_buf = curr_plugin.inputBytes(&input_slice[3]);
+
+    const init_inputs = InitValueTypes{.rgba = [_]u8{color_r_buf, color_g_buf, color_b_buf, color_a_buf}};
+
+    const host_clr = Color.init(init_inputs) catch ColorError.DoesntExist;
+
+    var output_slice = outputs[0..n_outputs];
+
+    var id_buf: [@sizeOf(i32)]u8 = undefined;
+
+    std.fmt.formatIntBuf(&id_buf, host_clr.id, 10, std.fmt.Case.lower, .{});
+
+    curr_plugin.returnBytes(&output_slice[0], id_buf);
+}
+
+pub export fn host_freeColor(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
+    _ = outputs;
+    _ = n_outputs;
+    _ = user_data;
+
+    var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+
+    var input_slice = inputs[0..n_inputs];
+
+    const id_str = curr_plugin.inputBytes(&input_slice[0]);
+
+    const id = try std.fmt.parseInt(i32, id_str, 10);
+
+    var color: *Color = @ptrFromInt(id);
+
+    color.deinit();
+}
+
+pub export fn host_colorFromHSV(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
+    _ = user_data;
+
+    var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+
+    var input_slice = inputs[0..n_inputs];
+
+    const color_h_buf = curr_plugin.inputBytes(&input_slice[0]);
+    const color_s_buf = curr_plugin.inputBytes(&input_slice[0]);
+    const color_v_buf = curr_plugin.inputBytes(&input_slice[0]);
+
+    const color_h = try std.fmt.parseFloat(f32, color_h_buf, 10);
+    const color_s = try std.fmt.parseFloat(f32, color_s_buf, 10);
+    const color_v = try std.fmt.parseFloat(f32, color_v_buf, 10);
+
+    const init_inputs = InitValueTypes{.hsv = [_]f32{color_h, color_s, color_v}};
+
+    const host_clr = Color.init(color_h, init_inputs) catch ColorError.DoesntExist;
+
+    var output_slice = outputs[0..n_outputs];
+
+    var id_buf: [@sizeOf(i32)]u8 = undefined;
+
+    std.fmt.formatIntBuf(&id_buf, host_clr.id, 10, std.fmt.Case.lower, .{});
+
+    curr_plugin.returnBytes(&output_slice[0], id_buf);
+}
+
+pub export fn host_colorFromHex(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
+    _ = user_data;
+
+    var curr_plugin = extism.CurrentPlugin.getCurrentPlugin(caller orelse unreachable);
+
+    var input_slice = inputs[0..n_inputs];
+
+    const color_hex_buf = curr_plugin.inputBytes(&input_slice[0]);
+
+    const color_hex = try std.fmt.parseInt(u32, color_hex_buf, 10);
+
+    const host_clr = Color.init(InitValueTypes{.hex = color_hex}) catch ColorError.DoesntExist;
+
+    var output_slice = outputs[0..n_outputs];
+
+    var id_buf: [@sizeOf(i32)]u8 = undefined;
+
+    std.fmt.formatIntBuf(&id_buf, host_clr.id, 10, std.fmt.Case.lower, .{});
+
+    curr_plugin.returnBytes(&output_slice[0], id_buf);
+}
+
+pub fn exports() []extism.Function {
+    const h_initColorWithName = extism.Function.init(
+        "getColorByName",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_initColorWithName,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    const h_initColorWithValues = extism.Function.init(
+        "getColorByRGBA",
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR, extism.PTR, extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_initColorWithValues,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    const h_fromHSV = extism.Function.init(
+        "getColorByHSV",
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR, extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_colorFromHSV,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    const h_fromHex = extism.Function.init(
+        "getColorByHex",
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR, extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &host_colorFromHex,
+        @constCast(@as(*const anyopaque, @ptrCast("user data")))
+    );
+
+    return [_]extism.Function{
+        h_initColorWithName,
+        h_initColorWithValues,
+        h_fromHSV,
+        h_fromHex,
+    };
+}

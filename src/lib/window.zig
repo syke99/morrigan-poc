@@ -97,3 +97,16 @@ pub export fn host_initWindow(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*
     try initWindow(windowStr);
 }
 
+pub fn exports() []extism.Function {
+    const h_initWindow = extism.Function.init(
+        "initWindow",
+        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{},
+        &host_initWindow,
+        @constCast(@as(*const anyopaque, @ptrCast("user data"))),
+    );
+
+    return [_]extism.Function{
+        h_initWindow,
+    };
+}

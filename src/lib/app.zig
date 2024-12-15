@@ -18,6 +18,11 @@ pub const App = struct {
         };
         const manifest = .{ .wasm = &[_]extism.manifest.Wasm{ .{ .wasm_file = wasm}} };
 
+        // initialize the host functions so they can
+        // be cleaned up before exiting
+        const host_functions = libhost.HostFunctions.init();
+        defer host_functions.deinit();
+
         var plugin = extism.Plugin.initFromManifest(
             allocator,
             manifest,

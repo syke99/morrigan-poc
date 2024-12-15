@@ -4,7 +4,7 @@ const Mouse = @import("mouse.zig").Mouse;
 const Keyboard = @import("keyboard.zig").Keyboard;
 const Color = @import("color.zig").Color;
 
-var alc: *GlobalAllocator = undefined;
+var alc: *GlobalAllocator = {};
 
 pub const GlobalAllocator = struct {
     allocator: std.mem.Allocator,
@@ -18,8 +18,8 @@ pub const GlobalAllocator = struct {
         alc = self;
     }
 
-    fn allocate(comptime T: type) i32 {
-        _ = try alc.create(@sizeOf(T));
+    fn allocate(self: *GlobalAllocator, comptime T: type) i32 {
+        _ = try self.allocator.create(@sizeOf(T));
 
         // generate i32, set it as the key and result of @intFromPtr(ptr)
         // as the value in self.hashMap
@@ -29,6 +29,11 @@ pub const GlobalAllocator = struct {
         return 0;
     }
 
+    fn retrieve(self: *GlobalAllocator, comptime T: type, id: i32) *T {
+        const ptr_int = self.hashMap.get(id);
+
+        return @ptrFromInt(ptr_int);
+    }
 
     fn free(self: *GlobalAllocator, id: i32) void {
         const ptr = try self.hashMap.get(id);
@@ -39,12 +44,15 @@ pub const GlobalAllocator = struct {
     }
 };
 
-
 pub fn allocate(comptime T: type) i32 {
     alc.allocate(T);
 }
 
 pub fn free(id: i32) void {
     alc.free(id);
+}
+
+pub fn retrieve(comptime T: type, id: i32) *T {
+    return alc.retrieve(T, id);
 }
 
