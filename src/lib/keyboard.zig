@@ -10,7 +10,7 @@ pub const KeyboardError = enum {
 
 pub const Keyboard = struct {
     id: i32,
-    keys: [Key.KeyTable.len]Key,
+    keys: std.ArrayList,
 
     // ========== RAYLIB FUNCTION WRAPPERS ==========
 
@@ -24,13 +24,20 @@ pub const Keyboard = struct {
 
         self_ptr.id = id;
 
+        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+        const allocator = gpa.allocator();
+
+        var key_list = std.ArrayList(Key).init(allocator);
+
         // load the keys into the keyboard;
         // in future, this can be extended to
         // load certain keys based on certain
         // system layouts
         inline for (@typeInfo(Key).Enum.fields) |f| {
-            self_ptr.keys[f.value] = @enumFromInt(f.value);
+            key_list.append(@enumFromInt(f.value));
         }
+
+        self_ptr.keys = key_list;
 
         // return UUID
         return id;
@@ -350,7 +357,13 @@ pub export fn host_isKeyUp(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]c
 
     var input_slice = inputs[0..n_inputs];
 
-    const key_str = curr_plugin.inputBytes(&input_slice[0]);
+    const keyboard_id = curr_plugin.inputBytes(&input_slice[0]);
+
+    const keyboard = liballocator.retrieve(Keyboard, keyboard_id);
+
+    const key_str = curr_plugin.inputBytes(&input_slice[1]);
+
+    try keyboard.key(key_str);
 
     const host_key = std.meta.stringToEnum(Key, key_str);
 
@@ -380,7 +393,13 @@ pub export fn host_isKeyDown(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c
 
     var input_slice = inputs[0..n_inputs];
 
-    const key_str = curr_plugin.inputBytes(&input_slice[0]);
+    const keyboard_id = curr_plugin.inputBytes(&input_slice[0]);
+
+    const keyboard = liballocator.retrieve(Keyboard, keyboard_id);
+
+    const key_str = curr_plugin.inputBytes(&input_slice[1]);
+
+    try keyboard.key(key_str);
 
     const host_key = std.meta.stringToEnum(Key, key_str);
 
@@ -408,7 +427,13 @@ pub export fn host_isKeyPressed(caller: ?*extism.c.ExtismCurrentPlugin, inputs: 
 
     var input_slice = inputs[0..n_inputs];
 
-    const key_str = curr_plugin.inputBytes(&input_slice[0]);
+    const keyboard_id = curr_plugin.inputBytes(&input_slice[0]);
+
+    const keyboard = liballocator.retrieve(Keyboard, keyboard_id);
+
+    const key_str = curr_plugin.inputBytes(&input_slice[1]);
+
+    try keyboard.key(key_str);
 
     const host_key = std.meta.stringToEnum(Key, key_str);
 
@@ -436,7 +461,13 @@ pub export fn host_isKeyPressedRepeat(caller: ?*extism.c.ExtismCurrentPlugin, in
 
     var input_slice = inputs[0..n_inputs];
 
-    const key_str = curr_plugin.inputBytes(&input_slice[0]);
+    const keyboard_id = curr_plugin.inputBytes(&input_slice[0]);
+
+    const keyboard = liballocator.retrieve(Keyboard, keyboard_id);
+
+    const key_str = curr_plugin.inputBytes(&input_slice[1]);
+
+    try keyboard.key(key_str);
 
     const host_key = std.meta.stringToEnum(Key, key_str);
 
@@ -464,7 +495,13 @@ pub export fn host_isKeyPressedReleased(caller: ?*extism.c.ExtismCurrentPlugin, 
 
     var input_slice = inputs[0..n_inputs];
 
-    const key_str = curr_plugin.inputBytes(&input_slice[0]);
+    const keyboard_id = curr_plugin.inputBytes(&input_slice[0]);
+
+    const keyboard = liballocator.retrieve(Keyboard, keyboard_id);
+
+    const key_str = curr_plugin.inputBytes(&input_slice[1]);
+
+    try keyboard.key(key_str);
 
     const host_key = std.meta.stringToEnum(Key, key_str);
 
