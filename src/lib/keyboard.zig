@@ -3,6 +3,7 @@ const rl = @import("raylib");
 const extism = @import("extism");
 
 const liballocator = @import("allocator.zig");
+const libboolean = @import("boolean.zig");
 
 pub const KeyboardError = enum {
     AllocationError
@@ -359,7 +360,9 @@ pub export fn host_isKeyUp(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]c
 
     const keyboard_id = curr_plugin.inputBytes(&input_slice[0]);
 
-    const keyboard = liballocator.retrieve(Keyboard, keyboard_id);
+    const id = try std.fmt.parseInt(i32, keyboard_id, 10);
+
+    const keyboard = liballocator.retrieve(Keyboard, id);
 
     const key_str = curr_plugin.inputBytes(&input_slice[1]);
 
@@ -370,20 +373,12 @@ pub export fn host_isKeyUp(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]c
     // handle setting/returning error on undefined host_key here
     
     // result
-    const result = host_key.?.isUp();
+    const result = libboolean.Boolean.init(host_key.?.isUp());
 
     var output_slice = outputs[0..n_outputs];
 
-    var result_buff: []const u8 = undefined;
-
-    if (result) {
-        result_buff = "true";
-    } else {
-        result_buff = "false";
-    }
-
     // return result here
-    curr_plugin.returnBytes(&output_slice[0], result_buff);
+    curr_plugin.returnBytes(&output_slice[0], result.toString());
 }
 
 pub export fn host_isKeyDown(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
@@ -395,7 +390,9 @@ pub export fn host_isKeyDown(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c
 
     const keyboard_id = curr_plugin.inputBytes(&input_slice[0]);
 
-    const keyboard = liballocator.retrieve(Keyboard, keyboard_id);
+    const id = try std.fmt.parseInt(i32, keyboard_id, 10);
+
+    const keyboard = liballocator.retrieve(Keyboard, id);
 
     const key_str = curr_plugin.inputBytes(&input_slice[1]);
 
@@ -404,20 +401,12 @@ pub export fn host_isKeyDown(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c
     const host_key = std.meta.stringToEnum(Key, key_str);
 
     // result
-    const result = host_key.?.isDown();
+    const result = libboolean.Boolean.init(host_key.?.isDown());
 
     var output_slice = outputs[0..n_outputs];
-
-    var result_buff: []const u8 = undefined;
-
-    if (result) {
-        result_buff = "true";
-    } else {
-        result_buff = "false";
-    }
-
+    
     // return result here
-    curr_plugin.returnBytes(&output_slice[0], result_buff);
+    curr_plugin.returnBytes(&output_slice[0], result.toString());
 }
 
 pub export fn host_isKeyPressed(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
@@ -429,7 +418,9 @@ pub export fn host_isKeyPressed(caller: ?*extism.c.ExtismCurrentPlugin, inputs: 
 
     const keyboard_id = curr_plugin.inputBytes(&input_slice[0]);
 
-    const keyboard = liballocator.retrieve(Keyboard, keyboard_id);
+    const id = try std.fmt.parseInt(i32, keyboard_id, 10);
+
+    const keyboard = liballocator.retrieve(Keyboard, id);
 
     const key_str = curr_plugin.inputBytes(&input_slice[1]);
 
@@ -438,20 +429,12 @@ pub export fn host_isKeyPressed(caller: ?*extism.c.ExtismCurrentPlugin, inputs: 
     const host_key = std.meta.stringToEnum(Key, key_str);
 
     // result
-    const result = host_key.?.isPressed();
+    const result = libboolean.Boolean.init(host_key.?.isPressed());
 
     var output_slice = outputs[0..n_outputs];
 
-    var result_buff: []const u8 = undefined;
-
-    if (result) {
-        result_buff = "true";
-    } else {
-        result_buff = "false";
-    }
-
     // return result here
-    curr_plugin.returnBytes(&output_slice[0], result_buff);
+    curr_plugin.returnBytes(&output_slice[0], result.toString());
 }
 
 pub export fn host_isKeyPressedRepeat(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
@@ -463,7 +446,9 @@ pub export fn host_isKeyPressedRepeat(caller: ?*extism.c.ExtismCurrentPlugin, in
 
     const keyboard_id = curr_plugin.inputBytes(&input_slice[0]);
 
-    const keyboard = liballocator.retrieve(Keyboard, keyboard_id);
+    const id = try std.fmt.parseInt(i32, keyboard_id, 10);
+
+    const keyboard = liballocator.retrieve(Keyboard, id);
 
     const key_str = curr_plugin.inputBytes(&input_slice[1]);
 
@@ -472,20 +457,12 @@ pub export fn host_isKeyPressedRepeat(caller: ?*extism.c.ExtismCurrentPlugin, in
     const host_key = std.meta.stringToEnum(Key, key_str);
 
     // result
-    const result = host_key.?.isPressedRepeat();
+    const result = libboolean.Boolean.init(host_key.?.isPressedRepeat());
 
     var output_slice = outputs[0..n_outputs];
 
-    var result_buff: []const u8 = undefined;
-
-    if (result) {
-        result_buff = "true";
-    } else {
-        result_buff = "false";
-    }
-
     // return result here
-    curr_plugin.returnBytes(&output_slice[0], result_buff);
+    curr_plugin.returnBytes(&output_slice[0], result.toString());
 }
 
 pub export fn host_isKeyPressedReleased(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
@@ -497,7 +474,9 @@ pub export fn host_isKeyPressedReleased(caller: ?*extism.c.ExtismCurrentPlugin, 
 
     const keyboard_id = curr_plugin.inputBytes(&input_slice[0]);
 
-    const keyboard = liballocator.retrieve(Keyboard, keyboard_id);
+    const id = try std.fmt.parseInt(i32, keyboard_id, 10);
+
+    const keyboard = liballocator.retrieve(Keyboard, id);
 
     const key_str = curr_plugin.inputBytes(&input_slice[1]);
 
@@ -506,20 +485,12 @@ pub export fn host_isKeyPressedReleased(caller: ?*extism.c.ExtismCurrentPlugin, 
     const host_key = std.meta.stringToEnum(Key, key_str);
 
     // result
-    const result = host_key.?.isPressedReleased();
+    const result = libboolean.Boolean.init(host_key.?.isPressedReleased());
 
     var output_slice = outputs[0..n_outputs];
 
-    var result_buff: []const u8 = undefined;
-
-    if (result) {
-        result_buff = "true";
-    } else {
-        result_buff = "false";
-    }
-
     // return result here
-    curr_plugin.returnBytes(&output_slice[0], result_buff);
+    curr_plugin.returnBytes(&output_slice[0], result.toString());
 }
 
 pub fn exports() []extism.Function {
@@ -540,10 +511,10 @@ pub fn exports() []extism.Function {
         &host_freeKeyboard,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
     );
-    // ======= KEYBOARD =======
+    // ======= KEYS =======
     const h_isKeyUp = extism.Function.init(
         "isKeyUp",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
         &host_isKeyUp,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
@@ -551,7 +522,7 @@ pub fn exports() []extism.Function {
 
     const h_isKeyDown = extism.Function.init(
         "isKeyDown",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
         &host_isKeyDown,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
@@ -559,7 +530,7 @@ pub fn exports() []extism.Function {
 
     const h_isKeyPressed = extism.Function.init(
         "isKeyPressed",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
         &host_isKeyPressed,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
@@ -567,7 +538,7 @@ pub fn exports() []extism.Function {
 
     const h_isKeyPressedRepeat = extism.Function.init(
         "isKeyPressedRepeat",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
         &host_isKeyPressedRepeat,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
@@ -575,7 +546,7 @@ pub fn exports() []extism.Function {
 
     const h_isKeyPressedReleased = extism.Function.init(
         "isKeyPressedReleased",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
         &host_isKeyPressedReleased,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))

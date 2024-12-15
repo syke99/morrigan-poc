@@ -3,6 +3,7 @@ const rl = @import("raylib");
 const extism = @import("extism");
 
 const liballocator = @import("allocator.zig");
+const libboolean = @import("boolean.zig");
 
 pub const MouseError = enum {
   AllocationError
@@ -208,27 +209,27 @@ pub export fn host_isButtonUp(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*
 
     var input_slice = inputs[0..n_inputs];
 
-    const mouse_button_str = curr_plugin.inputBytes(&input_slice[0]);
+    const mouse_id = curr_plugin.inputBytes(&input_slice[0]);
+
+    const id = try std.fmt.parseInt(i32, mouse_id, 10);
+
+    const mouse = liballocator.retrieve(Mouse, id);
+
+    const mouse_button_str = curr_plugin.inputBytes(&input_slice[1]);
+
+    try mouse.button(mouse_button_str);
 
     const host_mouse_button = std.meta.stringToEnum(Button, mouse_button_str);
 
     // handle setting/returning error on undefined host_key here
 
     // result
-    const result = host_mouse_button.?.isUp();
+    const result = libboolean.Boolean.init(host_mouse_button.?.isUp());
 
     var output_slice = outputs[0..n_outputs];
 
-    var result_buff: []const u8 = undefined;
-
-    if (result) {
-        result_buff = "true";
-    } else {
-        result_buff = "false";
-    }
-
     // return result here
-    curr_plugin.returnBytes(&output_slice[0], result_buff);
+    curr_plugin.returnBytes(&output_slice[0], result.toString());
 }
 
 pub export fn host_isButtonDown(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
@@ -238,27 +239,27 @@ pub export fn host_isButtonDown(caller: ?*extism.c.ExtismCurrentPlugin, inputs: 
 
     var input_slice = inputs[0..n_inputs];
 
-    const mouse_button_str = curr_plugin.inputBytes(&input_slice[0]);
+    const mouse_id = curr_plugin.inputBytes(&input_slice[0]);
+
+    const id = try std.fmt.parseInt(i32, mouse_id, 10);
+
+    const mouse = liballocator.retrieve(Mouse, id);
+
+    const mouse_button_str = curr_plugin.inputBytes(&input_slice[1]);
+
+    try mouse.button(mouse_button_str);
 
     const host_mouse_button = std.meta.stringToEnum(Button, mouse_button_str);
 
     // handle setting/returning error on undefined host_key here
 
     // result
-    const result = host_mouse_button.?.isDown();
+    const result = libboolean.Boolean.init(host_mouse_button.?.isDown());
 
     var output_slice = outputs[0..n_outputs];
 
-    var result_buff: []const u8 = undefined;
-
-    if (result) {
-        result_buff = "true";
-    } else {
-        result_buff = "false";
-    }
-
     // return result here
-    curr_plugin.returnBytes(&output_slice[0], result_buff);
+    curr_plugin.returnBytes(&output_slice[0], result.toString());
 }
 
 pub export fn host_isButtonPressed(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
@@ -268,27 +269,27 @@ pub export fn host_isButtonPressed(caller: ?*extism.c.ExtismCurrentPlugin, input
 
     var input_slice = inputs[0..n_inputs];
 
-    const mouse_button_str = curr_plugin.inputBytes(&input_slice[0]);
+    const mouse_id = curr_plugin.inputBytes(&input_slice[0]);
+
+    const id = try std.fmt.parseInt(i32, mouse_id, 10);
+
+    const mouse = liballocator.retrieve(Mouse, id);
+
+    const mouse_button_str = curr_plugin.inputBytes(&input_slice[1]);
+
+    try mouse.button(mouse_button_str);
 
     const host_mouse_button = std.meta.stringToEnum(Button, mouse_button_str);
 
     // handle setting/returning error on undefined host_key here
 
     // result
-    const result = host_mouse_button.?.isPressed();
+    const result = libboolean.Boolean.init(host_mouse_button.?.isPressed());
 
     var output_slice = outputs[0..n_outputs];
 
-    var result_buff: []const u8 = undefined;
-
-    if (result) {
-        result_buff = "true";
-    } else {
-        result_buff = "false";
-    }
-
     // return result here
-    curr_plugin.returnBytes(&output_slice[0], result_buff);
+    curr_plugin.returnBytes(&output_slice[0], result.toString());
 }
 
 pub export fn host_isButtonReleased(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
@@ -298,27 +299,27 @@ pub export fn host_isButtonReleased(caller: ?*extism.c.ExtismCurrentPlugin, inpu
 
     var input_slice = inputs[0..n_inputs];
 
-    const mouse_button_str = curr_plugin.inputBytes(&input_slice[0]);
+    const mouse_id = curr_plugin.inputBytes(&input_slice[0]);
+
+    const id = try std.fmt.parseInt(i32, mouse_id, 10);
+
+    const mouse = liballocator.retrieve(Mouse, id);
+
+    const mouse_button_str = curr_plugin.inputBytes(&input_slice[1]);
+
+    try mouse.button(mouse_button_str);
 
     const host_mouse_button = std.meta.stringToEnum(Button, mouse_button_str);
 
     // handle setting/returning error on undefined host_key here
 
     // result
-    const result = host_mouse_button.?.isReleased();
+    const result = libboolean.Boolean.init(host_mouse_button.?.isReleased());
 
     var output_slice = outputs[0..n_outputs];
 
-    var result_buff: []const u8 = undefined;
-
-    if (result) {
-        result_buff = "true";
-    } else {
-        result_buff = "false";
-    }
-
     // return result here
-    curr_plugin.returnBytes(&output_slice[0], result_buff);
+    curr_plugin.returnBytes(&output_slice[0], result.toString());
 }
 
 pub export fn host_setCursor(caller: ?*extism.c.ExtismCurrentPlugin, inputs: [*c]const extism.c.ExtismVal, n_inputs: u64, outputs: [*c]extism.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
@@ -433,7 +434,7 @@ pub fn exports() []extism.Function {
     // ======= MOUSE BUTTONS =======
     const h_isMouseButtonUp = extism.Function.init(
         "isMouseButtonUp",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
         &host_isButtonUp,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
@@ -441,7 +442,7 @@ pub fn exports() []extism.Function {
 
     const h_isMouseButtonDown = extism.Function.init(
         "isMouseButtonDown",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
         &host_isButtonDown,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
@@ -449,7 +450,7 @@ pub fn exports() []extism.Function {
 
     const h_isMouseButtonPressed = extism.Function.init(
         "isMouseButtonPressed",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
         &host_isButtonPressed,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
@@ -457,7 +458,7 @@ pub fn exports() []extism.Function {
 
     const h_isMouseButtonReleased = extism.Function.init(
         "isMouseButtonReleased",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
         &host_isButtonReleased,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))
@@ -465,7 +466,7 @@ pub fn exports() []extism.Function {
     // ======= MOUSE CURSOR =======
     const h_setMouseCursor = extism.Function.init(
         "setMouseCursor",
-        &[_]extism.c.ExtismValType{extism.PTR},
+        &[_]extism.c.ExtismValType{extism.PTR, extism.PTR},
         &[_]extism.c.ExtismValType{extism.PTR},
         &host_setCursor,
         @constCast(@as(*const anyopaque, @ptrCast("user data")))

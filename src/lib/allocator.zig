@@ -6,11 +6,11 @@ const Color = @import("color.zig").Color;
 
 var alc: *GlobalAllocator = {};
 
-pub const GlobalAllocator = struct {
+const GlobalAllocator = struct {
     allocator: std.mem.Allocator,
     hashMap: std.HashMap,
 
-    pub fn init(self: *GlobalAllocator, alloc: std.mem.Allocator) void {
+    fn init(self: *GlobalAllocator, alloc: std.mem.Allocator) void {
         self.allocator = alloc;
 
         self.hashMap = std.AutoHashMap(i32, usize).init(alloc);
@@ -44,8 +44,12 @@ pub const GlobalAllocator = struct {
     }
 };
 
+pub fn init(allocator: std.mem.Allocator) void {
+    GlobalAllocator.init(allocator);
+}
+
 pub fn allocate(comptime T: type) i32 {
-    alc.allocate(T);
+    return alc.allocate(T);
 }
 
 pub fn free(id: i32) void {
